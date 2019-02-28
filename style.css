@@ -1,0 +1,12 @@
+* {
+	margin: 0;
+	padding: 0;
+	line-height: 1.15;
+	box-sizing: border-box;
+}
+
+#map {
+	margin: 0 auto;
+	width: 1200px;
+	height: 800px;
+}

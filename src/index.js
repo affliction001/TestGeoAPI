@@ -1,137 +1,182 @@
 'use strict';
-//55.796782, 49.099031
+
+const $ = s => document.querySelector(s);
 
 ymaps.ready(init);
 
-function init() {
-	const placemarks = [];
-
-	const map = new ymaps.Map('map', {
-			center: [55.796782, 49.099031],
-			zoom: 15,
-			controls: ['zoomControl', 'fullscreenControl']
-		});
-
-	var customItemContentLayout = ymaps.templateLayoutFactory.createClass(
-        '<h2 class=ballon_header>{{ properties.balloonContentHeader|raw }}</h2>' +
-            '<div class=ballon_body>{{ properties.balloonContentBody|raw }}</div>' +
-            '<div class=ballon_footer>{{ properties.balloonContentFooter|raw }}</div>'
-    );
-
-	const clusterer = new ymaps.Clusterer({
-		preset: 'islands#invertedVioletClusterIcons',
-		clusterDisableClickZoom: true,
-		clusterBalloonContentLayout: 'cluster#balloonCarousel',
-		clusterBalloonItemContentLayout: customItemContentLayout
-	});
-
-	function MyBehavior() {
-		this.options = new ymaps.option.Manager();
-		this.events = new ymaps.event.Manager();
-	}
-
-	MyBehavior.prototype = {
-	    constructor: MyBehavior,
-	    enable: function () {
-	        this._parent.getMap().events.add('click', this._onClick, this);
-	    },
-	    disable: function () {
-	        this._parent.getMap().events.remove('click', this._onClick, this);
-	    },
-	    setParent: function (parent) { this._parent = parent; },
-	    getParent: function () { return this._parent; },
-	    _onClick: function (e) {
-	        let coords = e.get('coords');
-
-	        placemarks.push(createPlacemark(coords));
-		    clusterer.add(placemarks);
-			map.geoObjects.add(clusterer);
-	    }
-	};
-
-	function createPlacemark(coordinates) {
-		let placemark = new ymaps.Placemark(coordinates, {
-			balloonContentHeader: 'Header',
-            balloonContentBody: 'Body',
-            balloonContentFooter: 'Footer',
-			iconContent: '1'
-		}, {
-			preset: 'islands#violetIcon',
-			balloonCloseButton: true,
-			hideIconOnBalloonOpen: false
-		});
-
-		return placemark;
-	}
-
-	ymaps.behavior.storage.add('mybehavior', MyBehavior);
-	map.behaviors.enable('mybehavior');
-}
-
-/*
-	Определение адреса клика на карте с помощью обратного геокодирования
-*/
-/*
-ymaps.ready(init);
+let balloon = '<div class="balloon-container">' +
+    '<div class="balloon-header"></div>' +
+    '<div class="balloon-reviews"></div>' +
+    '<div class="balloon-form' +
+        '<div class="form-title">ВАШ ОТЗЫВ</div>' +
+        '<input class="form-name" type="text" placeholder="Ваше имя">' +
+        '<input class="form-place" type="text" placeholder="Укажите место">' +
+        '<input class="form-impressions" type="text" placeholder="Поделитесь впечатлениями">' +
+        '<input class="form-button" type="button" value="Добавить" onclick="addReview()">' +
+    '</div>' +
+'</div>';
 
 function init() {
-    var myPlacemark,
-        myMap = new ymaps.Map('map', {
-            center: [55.753994, 37.622093],
-            zoom: 9
-        }, {
-            searchControlProvider: 'yandex#search'
+    const placemarks = [];
+
+    const map = new ymaps.Map('map', {
+            center: [55.796782, 49.099031],
+            zoom: 15,
+            controls: ['zoomControl', 'fullscreenControl']
         });
 
-    // Слушаем клик на карте.
-    myMap.events.add('click', function (e) {
-        var coords = e.get('coords');
+    let BalloonContentLayout = ymaps.templateLayoutFactory.createClass(
+            '<div>Здесь тоже какая то хуйня</div>'
+        );
 
-        // Если метка уже создана – просто передвигаем ее.
-        if (myPlacemark) {
-            myPlacemark.geometry.setCoordinates(coords);
-        }
-        // Если нет – создаем.
-        else {
-            myPlacemark = createPlacemark(coords);
-            myMap.geoObjects.add(myPlacemark);
-            // Слушаем событие окончания перетаскивания на метке.
-            myPlacemark.events.add('dragend', function () {
-                getAddress(myPlacemark.geometry.getCoordinates());
-            });
-        }
-        getAddress(coords);
+    const clusterer = new ymaps.Clusterer({
+        preset: 'islands#invertedVioletClusterIcons',
+        clusterDisableClickZoom: true,
+        clusterBalloonContentLayout: 'cluster#balloonCarousel',
+        clusterBalloonItemContentLayout: BalloonContentLayout
     });
 
-    // Создание метки.
-    function createPlacemark(coords) {
-        return new ymaps.Placemark(coords, {
-            iconCaption: 'поиск...'
-        }, {
-            preset: 'islands#violetDotIconWithCaption',
-            draggable: true
-        });
+    function MyBehavior() {
+        this.options = new ymaps.option.Manager();
+        this.events = new ymaps.event.Manager();
     }
 
-    // Определяем адрес по координатам (обратное геокодирование).
-    function getAddress(coords) {
-        myPlacemark.properties.set('iconCaption', 'поиск...');
-        ymaps.geocode(coords).then(function (res) {
-            var firstGeoObject = res.geoObjects.get(0);
+    MyBehavior.prototype = {
+        constructor: MyBehavior,
+        enable: function () {
+            this._parent.getMap().events.add('click', this._onClick, this);
+        },
+        disable: function () {
+            this._parent.getMap().events.remove('click', this._onClick, this);
+        },
+        setParent: function (parent) { this._parent = parent; },
+        getParent: function () { return this._parent; },
+        _onClick: function (e) {
+            let coords = e.get('coords');
 
-            myPlacemark.properties
-                .set({
-                    // Формируем строку с данными об объекте.
-                    iconCaption: [
-                        // Название населенного пункта или вышестоящее административно-территориальное образование.
-                        firstGeoObject.getLocalities().length ? firstGeoObject.getLocalities() : firstGeoObject.getAdministrativeAreas(),
-                        // Получаем путь до топонима, если метод вернул null, запрашиваем наименование здания.
-                        firstGeoObject.getThoroughfare() || firstGeoObject.getPremise()
-                    ].filter(Boolean).join(', '),
-                    // В качестве контента балуна задаем строку с адресом объекта.
-                    balloonContent: firstGeoObject.getAddressLine()
+            ymaps.geocode(coords).then(res => {
+                const address = res.geoObjects.get(0) ? 
+                    res.geoObjects.get(0).properties.get('name') :
+                    'Не удалось определить адресс';
+
+                let placemark = new ymaps.Placemark(coords, {
+                    balloonContent: setBalloonContent(),
+                    iconContent: '1'
+                }, {
+                    preset: 'islands#violetIcon',
+                    balloonCloseButton: true,
+                    hideIconOnBalloonOpen: false
                 });
+
+                placemark.properties.set('balloonContent', setBalloonContent(address));
+                placemarks.push(placemark);
+                clusterer.add(placemarks);
+                map.geoObjects.add(clusterer);
+                placemark.balloon.open();
+            });
+        }
+    };
+
+    function createPlacemark(coordinates, address, reviews) {
+        let placemark = new ymaps.Placemark(coordinates, {
+            balloonContent: setBalloonContent(address, reviews),
+            iconContent: '1'
+        }, {
+            preset: 'islands#violetIcon',
+            balloonCloseButton: true,
+            hideIconOnBalloonOpen: false,
+            balloonPanelMaxMapArea: 0
         });
+
+        return placemark;
     }
+
+    ymaps.behavior.storage.add('mybehavior', MyBehavior);
+    map.behaviors.enable('mybehavior');
+}
+
+function addReview() {
+    const date = new Date().toLocaleString();
+
+    $('.balloon-reviews').innerHTML = `<p><b>${$('.form-name').value}</b> ${$('.form-place').value} ${date}</p>` +
+        `<p>${$('.form-impressions').value}</p>`;
+}
+
+function setBalloonContent(address="", reviews="Отзывов пока нет...") {
+    return `<div class="balloon-container">` +
+                `<div class="balloon-header">${address}</div>` +
+                `<div class="balloon-reviews">${reviews}</div>` +
+                `<div class="balloon-form` +
+                    `<div class="form-title">ВАШ ОТЗЫВ</div>` +
+                    `<input class="form-name" type="text" placeholder="Ваше имя">` +
+                    `<input class="form-place" type="text" placeholder="Укажите место">` +
+                    `<input class="form-impressions" type="text" placeholder="Поделитесь впечатлениями">` +
+                    `<input class="form-button" type="button" value="Добавить" onclick="addReview()">` +
+                `</div>` +
+            `</div>`;
+}
+
+
+/*
+    Настройка макета балуна метки
+*/
+/*
+function init () {
+    var map = new ymaps.Map('map', {
+            center: [55.650625, 37.62708],
+            zoom: 10
+        }, {
+            searchControlProvider: 'yandex#search'
+        }),
+        counter = 0,
+
+        // Создание макета содержимого балуна.
+        // Макет создается с помощью фабрики макетов с помощью текстового шаблона.
+        BalloonContentLayout = ymaps.templateLayoutFactory.createClass(
+            '<div style="margin: 10px;">' +
+                '<b>{{properties.name}}</b><br />' +
+                '<i id="count"></i> ' +
+                '<button id="counter-button"> +1 </button>' +
+            '</div>', {
+
+            // Переопределяем функцию build, чтобы при создании макета начинать
+            // слушать событие click на кнопке-счетчике.
+            build: function () {
+                // Сначала вызываем метод build родительского класса.
+                BalloonContentLayout.superclass.build.call(this);
+                // А затем выполняем дополнительные действия.
+                $('#counter-button').bind('click', this.onCounterClick);
+                $('#count').html(counter);
+            },
+
+            // Аналогично переопределяем функцию clear, чтобы снять
+            // прослушивание клика при удалении макета с карты.
+            clear: function () {
+                // Выполняем действия в обратном порядке - сначала снимаем слушателя,
+                // а потом вызываем метод clear родительского класса.
+                $('#counter-button').unbind('click', this.onCounterClick);
+                BalloonContentLayout.superclass.clear.call(this);
+            },
+
+            onCounterClick: function () {
+                $('#count').html(++counter);
+                if (counter == 5) {
+                    alert('Вы славно потрудились.');
+                    counter = 0;
+                    $('#count').html(counter);
+                }
+            }
+        });
+
+    var placemark = new ymaps.Placemark([55.650625, 37.62708], {
+            name: 'Считаем'
+        }, {
+            balloonContentLayout: BalloonContentLayout,
+            // Запретим замену обычного балуна на балун-панель.
+            // Если не указывать эту опцию, на картах маленького размера откроется балун-панель.
+            balloonPanelMaxMapArea: 0
+        });
+
+    map.geoObjects.add(placemark);
 }
 */

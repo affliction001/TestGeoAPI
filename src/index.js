@@ -25,15 +25,17 @@ function init() {
             controls: ['zoomControl', 'fullscreenControl']
         });
 
-    let BalloonContentLayout = ymaps.templateLayoutFactory.createClass(
+    let clustererBalloonContentLayout = ymaps.templateLayoutFactory.createClass(
             '<div>Здесь тоже какая то хуйня</div>'
         );
+
+    let BalloonContentLayout = ymaps.templateLayoutFactory.createClass('<div>Да блять пиздец сука полный</div>');
 
     const clusterer = new ymaps.Clusterer({
         preset: 'islands#invertedVioletClusterIcons',
         clusterDisableClickZoom: true,
         clusterBalloonContentLayout: 'cluster#balloonCarousel',
-        clusterBalloonItemContentLayout: BalloonContentLayout
+        clusterBalloonItemContentLayout: clustererBalloonContentLayout
     });
 
     function MyBehavior() {
@@ -60,15 +62,16 @@ function init() {
                     'Не удалось определить адресс';
 
                 let placemark = new ymaps.Placemark(coords, {
-                    balloonContent: setBalloonContent(),
+                    balloonContent: BalloonContentLayout,
                     iconContent: '1'
                 }, {
                     preset: 'islands#violetIcon',
                     balloonCloseButton: true,
-                    hideIconOnBalloonOpen: false
+                    hideIconOnBalloonOpen: false,
+                    balloonPanelMaxMapArea: 0
                 });
 
-                placemark.properties.set('balloonContent', setBalloonContent(address));
+                // placemark.properties.set('balloonContent', BalloonContentLayout);
                 placemarks.push(placemark);
                 clusterer.add(placemarks);
                 map.geoObjects.add(clusterer);
@@ -77,57 +80,50 @@ function init() {
         }
     };
 
-    function createPlacemark(coordinates, address, reviews) {
-        let placemark = new ymaps.Placemark(coordinates, {
-            balloonContent: setBalloonContent(address, reviews),
-            iconContent: '1'
-        }, {
-            preset: 'islands#violetIcon',
-            balloonCloseButton: true,
-            hideIconOnBalloonOpen: false,
-            balloonPanelMaxMapArea: 0
-        });
+    // function createPlacemark(coordinates, address, reviews) {
+    //     let placemark = new ymaps.Placemark(coordinates, {
+    //         balloonContent: BalloonContentLayout,
+    //         iconContent: '1'
+    //     }, {
+    //         preset: 'islands#violetIcon',
+    //         balloonCloseButton: true,
+    //         hideIconOnBalloonOpen: false,
+    //         balloonPanelMaxMapArea: 0
+    //     });
 
-        return placemark;
-    }
+    //     return placemark;
+    // }
 
     ymaps.behavior.storage.add('mybehavior', MyBehavior);
     map.behaviors.enable('mybehavior');
 }
 
-function addReview() {
-    const date = new Date().toLocaleString();
+// function addReview() {
+//     const date = new Date().toLocaleString();
 
-    $('.balloon-reviews').innerHTML = `<p><b>${$('.form-name').value}</b> ${$('.form-place').value} ${date}</p>` +
-        `<p>${$('.form-impressions').value}</p>`;
-}
+//     $('.balloon-reviews').innerHTML = `<p><b>${$('.form-name').value}</b> ${$('.form-place').value} ${date}</p>` +
+//         `<p>${$('.form-impressions').value}</p>`;
+// }
 
-function setBalloonContent(address="", reviews="Отзывов пока нет...") {
-    return `<div class="balloon-container">` +
-                `<div class="balloon-header">${address}</div>` +
-                `<div class="balloon-reviews">${reviews}</div>` +
-                `<div class="balloon-form` +
-                    `<div class="form-title">ВАШ ОТЗЫВ</div>` +
-                    `<input class="form-name" type="text" placeholder="Ваше имя">` +
-                    `<input class="form-place" type="text" placeholder="Укажите место">` +
-                    `<input class="form-impressions" type="text" placeholder="Поделитесь впечатлениями">` +
-                    `<input class="form-button" type="button" value="Добавить" onclick="addReview()">` +
-                `</div>` +
-            `</div>`;
-}
+// function setBalloonContent(address="", reviews="Отзывов пока нет...") {
+//     return `<div class="balloon-container">` +
+//                 `<div class="balloon-header">${address}</div>` +
+//                 `<div class="balloon-reviews">${reviews}</div>` +
+//                 `<div class="balloon-form` +
+//                     `<div class="form-title">ВАШ ОТЗЫВ</div>` +
+//                     `<input class="form-name" type="text" placeholder="Ваше имя">` +
+//                     `<input class="form-place" type="text" placeholder="Укажите место">` +
+//                     `<input class="form-impressions" type="text" placeholder="Поделитесь впечатлениями">` +
+//                     `<input class="form-button" type="button" value="Добавить" onclick="addReview()">` +
+//                 `</div>` +
+//             `</div>`;
+// }
 
 
 /*
     Настройка макета балуна метки
 */
 /*
-function init () {
-    var map = new ymaps.Map('map', {
-            center: [55.650625, 37.62708],
-            zoom: 10
-        }, {
-            searchControlProvider: 'yandex#search'
-        }),
         counter = 0,
 
         // Создание макета содержимого балуна.

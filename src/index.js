@@ -51,7 +51,7 @@ function init() {
 
                 let placemark = new ymaps.Placemark(coords, {
                     balloonContent: setBalloonContent(coords, address),
-                    iconContent: '1'
+                    iconContent: ''
                 }, {
                     preset: 'islands#violetIcon',
                     balloonCloseButton: true,
@@ -65,6 +65,10 @@ function init() {
                         reviews[coordinates].reduce((prev, current) => prev + current) : 'Отзывов пока нет';
 
                     placemark.properties.set('balloonContent', setBalloonContent(coords, address, reviewsStr));
+                });
+
+                placemark.events.add('balloonclose', event => {
+                    placemark.properties.set('iconContent', reviews.hasOwnProperty(coords) ? reviews[coords].length : '');
                 });
 
                 placemarks.push(placemark);

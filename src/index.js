@@ -4,10 +4,10 @@ ymaps.ready(init);
 
 function init() {
     const myMap = new ymaps.Map('map', {
-            center: [66.489430, 25.684199],
-            zoom: 15,
-            controls: ['zoomControl', 'fullscreenControl']
-        });
+        center: [66.489430, 25.684199],
+        zoom: 15,
+        controls: ['zoomControl', 'fullscreenControl']
+    });
 
     const clusterer = new ymaps.Clusterer({
         preset: 'islands#invertedVioletClusterIcons',
@@ -28,10 +28,12 @@ function init() {
 
     const createPlacemark = function(pos) {
         const placemark = new ymaps.Placemark(pos.coords, {
-            balloonContentHeader: `<h2>${pos.address}</h2>`,
-            iconContent: ''
+            balloonContentHeader: `<h3>${pos.address}</h3>`,
+            balloonContentBody: `<p>Здесь должно быть поле с отзывами.</p>`,
+            balloonContentFooter: `<p>Сюда можно засунуть форму для добавления отзывов.</p>`,
+            iconContent: 'Количество отзывов'
         }, {
-            preset: 'islands#violetIcon',
+            preset: 'islands#violetStretchyIcon',
             hideIconOnBalloonOpen: false,
             balloonPanelMaxMapArea: 0
         });

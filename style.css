@@ -14,19 +14,69 @@
 
 .myBalloon {
     position: absolute;
-    border: 1px solid #000;
 	border-radius: 20px;
     background-color: #fff;
     width: 350px;
     height: 450px;
 }
 
+.balloon-header {
+	position: absolute;
+	left: 0;
+	right: 0;
+	min-height: 50px;
+	background-color: #ff8663;
+	border-top-left-radius: 20px;
+	border-top-right-radius: 20px;
+}
+
 .close {
     position: absolute;
-    color: #f00;
+    color: #fff;
     font-weight: bold;
-    top: 10px;
-    right: 10px;
+    top: 15px;
+    right: 15px;
 	text-decoration: none;
 }
-/* ff8663 */
+
+.balloon-reviews {
+	position: absolute;
+	top: 50px;
+	left: 0;
+	right: 0;
+	height: 200px;
+}
+
+.balloon-form {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 200px;
+}
+
+.form-title {
+	margin-left: 5%;
+}
+
+.form-name, .form-place, .form-review {
+	width: 90%;
+	margin-left: 5%;
+	height: 30px;
+	border-radius: 15px;
+	padding: 0 20px;
+}
+
+.form-review {
+	height: 80px;
+}
+
+.form-button {
+	position: absolute;
+	bottom: 10px;
+	right: 5%;
+	width: 30%;
+	height: 30px;
+	border-radius: 15px;
+	text-align: center;
+}

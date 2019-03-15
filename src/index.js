@@ -1,7 +1,5 @@
 'use strict';
 
-// const $ = selector => document.querySelector(selector);
-
 ymaps.ready(init);
 
 function init() {
@@ -92,9 +90,15 @@ function init() {
 
     const createPlacemark = function(pos) {
         const myPlacemark = window.myPlacemark = new ymaps.Placemark(pos.coords, {
-            balloonHeader: '<a class="close" href="#">X</a>',
-            balloonContent: 'Контент балуна',
-            balloonFooter: 'Футер балуна'
+            balloonHeader: '<header class="balloon-header"><div class="geo-logo"></div><div class="address"></div><a class="close" href="#">X</a></header>',
+            balloonContent: '<div class="balloon-reviews"></div>',
+            balloonFooter: '<form class="balloon-form">' +
+                                '<p class="form-title">ВАШ ОТЗЫВ</p>' +
+                                '<input class="form-name" type="text" placeholder="Ваше имя">' +
+                                '<input class="form-place" type="text" placeholder="Укажите место">' +
+                                '<textarea class="form-review"></textarea>' +
+                                '<input class="form-button" type="button" value="Добавить" onClick="addReview()">' +
+                            '</form>'
         }, {
             preset: 'islands#violetIcon',
             hideIconOnBalloonOpen: true,
@@ -136,4 +140,10 @@ function init() {
 
         createPlacemark(position);
     });
+}
+
+function addReview() {
+    console.log(document.querySelector('.form-name').value);
+    console.log(document.querySelector('.form-place').value);
+    console.log(document.querySelector('.form-review').value);
 }

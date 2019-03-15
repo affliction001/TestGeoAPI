@@ -1,6 +1,6 @@
 'use strict';
 
-const $ = selector => document.querySelector(selector);
+// const $ = selector => document.querySelector(selector);
 
 ymaps.ready(init);
 
@@ -17,6 +17,68 @@ function init() {
         clusterBalloonContentLayout: 'cluster#balloonCarousel'
     });
 
+    const MyBalloonLayout = ymaps.templateLayoutFactory.createClass(
+        '<div class="myBalloon">' +
+            '<div class="arrow"></div>' +
+            '<div>$[[options.contentLayout observeSize]]</div>' +
+        '</div>', {
+                build: function () {
+                    this.constructor.superclass.build.call(this);
+                    this._$element = $('.myBalloon', this.getParentElement());
+                    this.applyElementOffset();
+                    this._$element.find('.close').on('click', $.proxy(this.onCloseClick, this));
+                },
+                clear: function () {
+                    this._$element.find('.close').off('click');
+                    this.constructor.superclass.clear.call(this);
+                },
+                onSublayoutSizeChange: function () {
+                    MyBalloonLayout.superclass.onSublayoutSizeChange.apply(this, arguments);
+
+                    if(!this._isElement(this._$element)) {
+                        return;
+                    }
+
+                    this.applyElementOffset();
+                    this.events.fire('shapechange');
+                },
+                applyElementOffset: function () {
+                    this._$element.css({
+                        left: 0,
+                        top: -30
+                    });
+                },
+                onCloseClick: function (e) {
+                    e.preventDefault();
+                    this.events.fire('userclose');
+                },
+                getShape: function () {
+                    if(!this._isElement(this._$element)) {
+                        return MyBalloonLayout.superclass.getShape.call(this);
+                    }
+
+                    let position = this._$element.position();
+
+                    return new ymaps.shape.Rectangle(new ymaps.geometry.pixel.Rectangle([
+                        [position.left, position.top], [
+                            position.left + this._$element[0].offsetWidth,
+                            position.top + this._$element[0].offsetHeight + this._$element.find('.arrow')[0].offsetHeight
+                        ]
+                    ]));
+                },
+                _isElement: function (element) {
+                    return element && element[0] && element.find('.arrow')[0];
+                }
+            }
+        );
+
+    // Создание вложенного макета содержимого балуна.
+    const MyBalloonContentLayout = ymaps.templateLayoutFactory.createClass(
+        '<div>$[properties.balloonHeader]</div>' +
+        '<div>$[properties.balloonContent]</div>' +
+        '<div>$[properties.balloonFooter]</div>'
+    );
+
     const getPosition = async function(e) {
         const coords = e.get("coords");
         const geocode = await ymaps.geocode(coords);
@@ -29,206 +91,49 @@ function init() {
     }
 
     const createPlacemark = function(pos) {
-        const placemark = new ymaps.Placemark(pos.coords, {
-            balloonContentHeader: `<h3>${pos.address}</h3>`,
-            balloonContentBody: `<p>Здесь должно быть поле с отзывами.</p>`,
-            balloonContentFooter: `<p>Сюда можно засунуть форму для добавления отзывов.</p>`
+        const myPlacemark = window.myPlacemark = new ymaps.Placemark(pos.coords, {
+            balloonHeader: '<a class="close" href="#">X</a>',
+            balloonContent: 'Контент балуна',
+            balloonFooter: 'Футер балуна'
         }, {
             preset: 'islands#violetIcon',
-            hideIconOnBalloonOpen: false,
+            hideIconOnBalloonOpen: true,
+            balloonShadow: false,
+            balloonLayout: MyBalloonLayout,
+            balloonContentLayout: MyBalloonContentLayout,
             balloonPanelMaxMapArea: 0
         });
 
-        clusterer.add(placemark);
+        clusterer.add(myPlacemark);
         myMap.geoObjects.add(clusterer);
     }
 
     myMap.events.add("click", async e => {
         const position = await getPosition(e);
 
-        $('.review-window').style.display = 'block';
-        $('.review-window').dataset.coords = position.coords;
-        $('.address').innerText = position.address;
+        // $('.review-window').style.display = 'block';
+        // $('.review-window').dataset.coords = position.coords;
+        // $('.address').innerText = position.address;
+        //
+        // const timer = $('.form-button').addEventListener('click', event => {
+        //     const review = {
+        //         name: $('.form-name').value,
+        //         place: $('.form-place').value,
+        //         text: $('.form-review').value,
+        //         date: new Date().toLocaleString().replace(',', '')
+        //     };
+        //
+        //     if (localStorage[position.coords]) {
+        //         const r = JSON.parse(localStorage[position.coords]);
+        //         r.push(review);
+        //         localStorage[position.coords] = JSON.stringify(r);
+        //     } else {
+        //         localStorage[position.coords] = JSON.stringify([review]);
+        //     }
+        //
+        //     createPlacemark(position);
+        // });
 
-        const timer = $('.form-button').addEventListener('click', event => {
-            const review = {
-                name: $('.form-name').value,
-                place: $('.form-place').value,
-                text: $('.form-review').value,
-                date: new Date().toLocaleString().replace(',', '')
-            };
-
-            if (localStorage[position.coords]) {
-                const r = JSON.parse(localStorage[position.coords]);
-                r.push(review);
-                localStorage[position.coords] = JSON.stringify(r);
-            } else {
-                localStorage[position.coords] = JSON.stringify([review]);
-            }
-
-            createPlacemark(position);
-        });
+        createPlacemark(position);
     });
 }
-
-/************************************************************************************/
-/*
-class Map {
-  initMap(settings) {
-    return new Promise((resolve, reject) => ymaps.ready(resolve)).then(() => {
-      this.map = new ymaps.Map("map", settings);
-      this.cluster = new ymaps.Clusterer({
-        preset: "islands#invertedVioletClusterIcons",
-        clusterDisableClickZoom: true,
-        clusterBalloonContentLayout: "cluster#balloonCarousel"
-      });
-      return this.map;
-    });
-  }
-  async getMapPosition(e) {
-    const coords = e.get("coords");
-    const geocode = await ymaps.geocode(coords);
-    const address = geocode.geoObjects.get(0).properties.get("text");
-
-    return {
-      coords,
-      address
-    };
-  }
-};
-
-class Controller {
-  constructor() {
-    this.myApiMap = new Map();
-
-    this.init();
-  }
-
-  async init() {
-    this.yandexApi = await this.myApiMap.initMap({
-      center: [59.945, 30.264],
-      zoom: 15,
-      controls: ["zoomControl", "fullscreenControl"]
-    });
-    this.yandexApi.events.add("click", async e => {
-      this.position = await this.myApiMap.getMapPosition(e);
-    });
-  }
-}
-*/
-
-/***************************************************************************************/
-
-/*
-const $ = s => document.querySelector(s);
-
-ymaps.ready(init);
-
-const reviews = {};
-
-function init() {
-    const placemarks = [];
-
-    const map = new ymaps.Map('map', {
-            center: [66.489430, 25.684199],
-            zoom: 15,
-            controls: ['zoomControl', 'fullscreenControl']
-        });
-
-    let clustererBalloonContentLayout = ymaps.templateLayoutFactory.createClass(
-            '<div>Тут еще будет головоломка.</div>'
-        );
-
-    const clusterer = new ymaps.Clusterer({
-        preset: 'islands#invertedVioletClusterIcons',
-        clusterDisableClickZoom: true,
-        clusterBalloonContentLayout: 'cluster#balloonCarousel',
-        clusterBalloonItemContentLayout: clustererBalloonContentLayout
-    });
-
-    function MyBehavior() {
-        this.options = new ymaps.option.Manager();
-        this.events = new ymaps.event.Manager();
-    }
-
-    MyBehavior.prototype = {
-        constructor: MyBehavior,
-        enable: function () {
-            this._parent.getMap().events.add('click', this._onClick, this);
-        },
-        disable: function () {
-            this._parent.getMap().events.remove('click', this._onClick, this);
-        },
-        setParent: function (parent) { this._parent = parent; },
-        getParent: function () { return this._parent; },
-        _onClick: function (e) {
-            let coords = e.get('coords');
-
-            ymaps.geocode(coords).then(res => {
-                const address = res.geoObjects.get(0) ?
-                    res.geoObjects.get(0).properties.get('name') :
-                    'Не удалось определить адресс';
-
-                let placemark = new ymaps.Placemark(coords, {
-                    balloonContent: setBalloonContent(coords, address),
-                    iconContent: ''
-                }, {
-                    preset: 'islands#violetIcon',
-                    balloonCloseButton: true,
-                    hideIconOnBalloonOpen: false,
-                    balloonPanelMaxMapArea: 0
-                });
-
-                placemark.events.add('balloonopen', event => {
-                    const coordinates = event.originalEvent.currentTarget.geometry._coordinates;
-                    const reviewsStr = reviews.hasOwnProperty(coordinates) ?
-                        reviews[coordinates].reduce((prev, current) => prev + current) : 'Отзывов пока нет';
-
-                    placemark.properties.set('balloonContent', setBalloonContent(coords, address, reviewsStr));
-                });
-
-                placemark.events.add('balloonclose', event => {
-                    placemark.properties.set('iconContent', reviews.hasOwnProperty(coords) ? reviews[coords].length : '');
-                });
-
-                placemarks.push(placemark);
-                clusterer.add(placemarks);
-                map.geoObjects.add(clusterer);
-                placemark.balloon.open();
-            });
-        }
-    };
-
-    ymaps.behavior.storage.add('mybehavior', MyBehavior);
-    map.behaviors.enable('mybehavior');
-}
-
-function addReview() {
-    const date = new Date().toLocaleString().replace(',', '');
-    const review = `<p><b>${$('.form-name').value}</b> ${$('.form-place').value} ${date}</p>` +
-       `<p>${$('.form-impressions').value}</p>`;
-
-    $('.balloon-reviews').innerHTML += review;
-    $('.form-name').value = '';
-    $('.form-place').value = '';
-    $('.form-impressions').value = '';
-
-    Array.isArray(reviews[$('.balloon-container').dataset.coordinates]) ?
-        reviews[$('.balloon-container').dataset.coordinates].push(review) :
-        reviews[$('.balloon-container').dataset.coordinates] = [review];
-}
-
-function setBalloonContent(coordinates, address='Не удалось узнать адресс.', reviews='') {
-    return `<div class="balloon-container" data-coordinates=${coordinates}>` +
-                `<div class="balloon-header">${address}</div>` +
-                `<div class="balloon-reviews">${reviews}</div>` +
-                `<div class="balloon-form` +
-                    `<div class="form-title">ВАШ ОТЗЫВ</div>` +
-                    `<input class="form-name" type="text" placeholder="Ваше имя">` +
-                    `<input class="form-place" type="text" placeholder="Укажите место">` +
-                    `<input class="form-impressions" type="text" placeholder="Поделитесь впечатлениями">` +
-                    `<input class="form-button" type="button" value="Добавить" onclick="addReview()">` +
-                `</div>` +
-            `</div>`;
-}
-*/

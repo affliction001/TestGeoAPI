@@ -6,7 +6,40 @@
 }
 
 #map {
+	position: absolute;
 	margin: 0 auto;
 	width: 100vw;
 	height: 100vh;
+}
+
+.review-window {
+	display: none;
+	position: absolute;
+	width: 300px;
+	border-radius: 20px;
+	background-color: #fff;
+}
+
+.review-window header {
+	background-color: #f50;
+	border-top-left-radius: 20px;
+	border-top-right-radius: 20px;
+	padding: 5px 10px;
+}
+
+.address {
+	font-size: 18px;
+	color: #fff;
+}
+
+.review-window section {
+	padding: 0 10px 10px;
+}
+
+.reviews {
+	height: 200px;
+}
+
+input, textarea {
+	width: 100%;
 }

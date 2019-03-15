@@ -1,5 +1,7 @@
 'use strict';
 
+const $ = selector => document.querySelector(selector);
+
 ymaps.ready(init);
 
 function init() {
@@ -18,7 +20,7 @@ function init() {
     const getPosition = async function(e) {
         const coords = e.get("coords");
         const geocode = await ymaps.geocode(coords);
-        const address = geocode.geoObjects.get(0).properties.get("text");
+        const address = geocode.geoObjects.get(0).properties.get("name");
 
         return {
             coords,
@@ -30,10 +32,9 @@ function init() {
         const placemark = new ymaps.Placemark(pos.coords, {
             balloonContentHeader: `<h3>${pos.address}</h3>`,
             balloonContentBody: `<p>Здесь должно быть поле с отзывами.</p>`,
-            balloonContentFooter: `<p>Сюда можно засунуть форму для добавления отзывов.</p>`,
-            iconContent: 'Количество отзывов'
+            balloonContentFooter: `<p>Сюда можно засунуть форму для добавления отзывов.</p>`
         }, {
-            preset: 'islands#violetStretchyIcon',
+            preset: 'islands#violetIcon',
             hideIconOnBalloonOpen: false,
             balloonPanelMaxMapArea: 0
         });
@@ -44,8 +45,29 @@ function init() {
 
     myMap.events.add("click", async e => {
         const position = await getPosition(e);
-        console.log(position);
-        createPlacemark(position);
+
+        $('.review-window').style.display = 'block';
+        $('.review-window').dataset.coords = position.coords;
+        $('.address').innerText = position.address;
+
+        const timer = $('.form-button').addEventListener('click', event => {
+            const review = {
+                name: $('.form-name').value,
+                place: $('.form-place').value,
+                text: $('.form-review').value,
+                date: new Date().toLocaleString().replace(',', '')
+            };
+
+            if (localStorage[position.coords]) {
+                const r = JSON.parse(localStorage[position.coords]);
+                r.push(review);
+                localStorage[position.coords] = JSON.stringify(r);
+            } else {
+                localStorage[position.coords] = JSON.stringify([review]);
+            }
+
+            createPlacemark(position);
+        });
     });
 }
 

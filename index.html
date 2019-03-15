@@ -9,6 +9,31 @@
 <body>
     <div id="map"></div>
 
+	<div class="review-window">
+		<header>
+			<div class="geo-icon"></div>
+			<p class="address"></p>
+			<div class="close-button"></div>
+		</header>
+		<section>
+			<div class="reviews">
+				<p class="review-title">
+					<span class="review-author"></span>
+					<span class="review-place"></span>
+					<span class="review-date"></span>
+				</p>
+				<p class="review-text">Отзывов пока нет...</p>
+			</div>
+			<form>
+				<h3>ВАШ ОТЗЫВ</h3>
+				<input class="form-name" type="text" placeholder="Ваше имя">
+				<input class="form-place" type="text" placeholder="Укажите место">
+				<textarea class="form-review" cols="30" rows="10" placeholder="Поделитесь впечатлениями"></textarea>
+				<input class="form-button" type="button" value="Добавить">
+			</form>
+		</section>
+	</div>
+
     <script src="src/index.js"></script>
 </body>
 </html>

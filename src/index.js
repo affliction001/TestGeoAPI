@@ -1,5 +1,101 @@
 'use strict';
 
+ymaps.ready(init);
+
+function init() {
+    const myMap = new ymaps.Map('map', {
+            center: [66.489430, 25.684199],
+            zoom: 15,
+            controls: ['zoomControl', 'fullscreenControl']
+        });
+
+    const clusterer = new ymaps.Clusterer({
+        preset: 'islands#invertedVioletClusterIcons',
+        clusterDisableClickZoom: true,
+        clusterBalloonContentLayout: 'cluster#balloonCarousel'
+    });
+
+    const getPosition = async function(e) {
+        const coords = e.get("coords");
+        const geocode = await ymaps.geocode(coords);
+        const address = geocode.geoObjects.get(0).properties.get("text");
+
+        return {
+            coords,
+            address
+        };
+    }
+
+    const createPlacemark = function(pos) {
+        const placemark = new ymaps.Placemark(pos.coords, {
+            balloonContentHeader: `<h2>${pos.address}</h2>`,
+            iconContent: ''
+        }, {
+            preset: 'islands#violetIcon',
+            hideIconOnBalloonOpen: false,
+            balloonPanelMaxMapArea: 0
+        });
+
+        clusterer.add(placemark);
+        myMap.geoObjects.add(clusterer);
+    }
+
+    myMap.events.add("click", async e => {
+        const position = await getPosition(e);
+        console.log(position);
+        createPlacemark(position);
+    });
+}
+
+/************************************************************************************/
+/*
+class Map {
+  initMap(settings) {
+    return new Promise((resolve, reject) => ymaps.ready(resolve)).then(() => {
+      this.map = new ymaps.Map("map", settings);
+      this.cluster = new ymaps.Clusterer({
+        preset: "islands#invertedVioletClusterIcons",
+        clusterDisableClickZoom: true,
+        clusterBalloonContentLayout: "cluster#balloonCarousel"
+      });
+      return this.map;
+    });
+  }
+  async getMapPosition(e) {
+    const coords = e.get("coords");
+    const geocode = await ymaps.geocode(coords);
+    const address = geocode.geoObjects.get(0).properties.get("text");
+
+    return {
+      coords,
+      address
+    };
+  }
+};
+
+class Controller {
+  constructor() {
+    this.myApiMap = new Map();
+
+    this.init();
+  }
+
+  async init() {
+    this.yandexApi = await this.myApiMap.initMap({
+      center: [59.945, 30.264],
+      zoom: 15,
+      controls: ["zoomControl", "fullscreenControl"]
+    });
+    this.yandexApi.events.add("click", async e => {
+      this.position = await this.myApiMap.getMapPosition(e);
+    });
+  }
+}
+*/
+
+/***************************************************************************************/
+
+/*
 const $ = s => document.querySelector(s);
 
 ymaps.ready(init);
@@ -111,3 +207,4 @@ function setBalloonContent(coordinates, address='Не удалось узнат�
                 `</div>` +
             `</div>`;
 }
+*/

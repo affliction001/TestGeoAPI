@@ -95,7 +95,7 @@ function init() {
                                 '<p class="form-title">ВАШ ОТЗЫВ</p>' +
                                 '<input class="form-name" type="text" placeholder="Ваше имя">' +
                                 '<input class="form-place" type="text" placeholder="Укажите место">' +
-                                '<textarea class="form-review"></textarea>' +
+                                '<textarea class="form-review" placeholder="Поделитесь впечатлениями"></textarea>' +
                                 '<input class="form-button" type="button" value="Добавить" onClick="addReview()">' +
                             '</form>'
         }, {
@@ -113,7 +113,6 @@ function init() {
 
         clusterer.add(myPlacemark);
         myMap.geoObjects.add(clusterer);
-        myPlacemark.balloon.open();
     }
 
     myMap.events.add("click", async e => {
@@ -141,6 +140,7 @@ function addReview() {
     }
 
     document.querySelector('.balloon-reviews').innerHTML = setContent(coords);
+    // createPlacemark({coords: coords, address: document.querySelector('.address').textContent});
 }
 
 function setHeaderContent(address) {

@@ -70,7 +70,6 @@ function init() {
             }
         );
 
-    // Создание вложенного макета содержимого балуна.
     const MyBalloonContentLayout = ymaps.templateLayoutFactory.createClass(
         '<div>$[properties.balloonHeader]</div>' +
         '<div>$[properties.balloonContent]</div>' +
@@ -89,10 +88,10 @@ function init() {
     }
 
     const createPlacemark = function(pos) {
-        const myPlacemark = window.myPlacemark = new ymaps.Placemark(pos.coords, {
-            balloonHeader: '<header class="balloon-header"><div class="geo-logo"></div><div class="address"></div><a class="close" href="#">X</a></header>',
-            balloonContent: '<div class="balloon-reviews"></div>',
-            balloonFooter: '<form class="balloon-form">' +
+        const myPlacemark = new ymaps.Placemark(pos.coords, {
+            balloonHeader: setHeaderContent(pos.address),
+            balloonContent: setContent(pos.coords),
+            balloonFooter: `<form class="balloon-form" data-coords="${pos.coords}">` +
                                 '<p class="form-title">ВАШ ОТЗЫВ</p>' +
                                 '<input class="form-name" type="text" placeholder="Ваше имя">' +
                                 '<input class="form-place" type="text" placeholder="Укажите место">' +
@@ -108,42 +107,66 @@ function init() {
             balloonPanelMaxMapArea: 0
         });
 
+        myPlacemark.events.add('balloonopen', e => {
+            myPlacemark.properties.set('balloonContent', setContent(pos.coords));
+        });
+
         clusterer.add(myPlacemark);
         myMap.geoObjects.add(clusterer);
+        myPlacemark.balloon.open();
     }
 
     myMap.events.add("click", async e => {
         const position = await getPosition(e);
-
-        // $('.review-window').style.display = 'block';
-        // $('.review-window').dataset.coords = position.coords;
-        // $('.address').innerText = position.address;
-        //
-        // const timer = $('.form-button').addEventListener('click', event => {
-        //     const review = {
-        //         name: $('.form-name').value,
-        //         place: $('.form-place').value,
-        //         text: $('.form-review').value,
-        //         date: new Date().toLocaleString().replace(',', '')
-        //     };
-        //
-        //     if (localStorage[position.coords]) {
-        //         const r = JSON.parse(localStorage[position.coords]);
-        //         r.push(review);
-        //         localStorage[position.coords] = JSON.stringify(r);
-        //     } else {
-        //         localStorage[position.coords] = JSON.stringify([review]);
-        //     }
-        //
-        //     createPlacemark(position);
-        // });
 
         createPlacemark(position);
     });
 }
 
 function addReview() {
-    console.log(document.querySelector('.form-name').value);
-    console.log(document.querySelector('.form-place').value);
-    console.log(document.querySelector('.form-review').value);
+    const coords = document.querySelector('.balloon-form').dataset.coords;
+    const review = {
+        name: document.querySelector('.form-name').value,
+        place: document.querySelector('.form-place').value,
+        text: document.querySelector('.form-review').value,
+        date: new Date().toLocaleString().replace(',', '')
+    }
+
+    if (localStorage[coords]) {
+        const r = JSON.parse(localStorage[coords]);
+        r.push(review);
+        localStorage[coords] = JSON.stringify(r);
+    } else {
+        localStorage[coords] = JSON.stringify([review]);
+    }
+
+    document.querySelector('.balloon-reviews').innerHTML = setContent(coords);
+}
+
+function setHeaderContent(address) {
+    return `<header class="balloon-header">` +
+                `<div class="geo-logo"></div>` +
+                `<div class="address">${address}</div>` +
+                `<a class="close" href="#">X</a>` +
+            `</header>`;
+}
+
+function setContent(coords) {
+    const reviews = localStorage[coords] ?
+        JSON.parse(localStorage[coords]) : 'Отзывов пока нет...';
+
+    let rev = '';
+
+    if (typeof reviews === 'string') {
+        rev = reviews;
+    } else {
+        reviews.forEach(review => {
+            rev +=  `<div>` +
+                        `<p><b>${review.name}</b> ${review.place} ${review.date}</p>` +
+                        `<p>${review.text}</p>` +
+                    `</div>`;
+        });
+    }
+
+    return `<div class="balloon-reviews">${rev}</div>`;
 }

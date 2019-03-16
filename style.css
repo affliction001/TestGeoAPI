@@ -30,6 +30,12 @@
 	border-top-right-radius: 20px;
 }
 
+.address {
+	text-align: center;
+	color: #fff;
+	padding: 10px 0;
+}
+
 .close {
     position: absolute;
     color: #fff;
